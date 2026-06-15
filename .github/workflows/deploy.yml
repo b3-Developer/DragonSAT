@@ -2,7 +2,7 @@ name: Deploy to Portainer
 
 on:
   workflow_run:
-    workflows: ["Build & Push to DockerHub"]
+    workflows: ["Build & Push to GHCR"]
     types:
       - completed
     branches:
