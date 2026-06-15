@@ -43,8 +43,7 @@ export async function loadOpenSATData(): Promise<void> {
     isCached = true;
     console.log(`Loaded ${mathQs.length} math + ${englishQs.length} english questions (${cachedQuestions.length} total)`);
   } catch (error) {
-    console.error('Failed to load OpenSAT data:', error);
-    throw error;
+    console.error('Failed to load OpenSAT data (questions unavailable until retry):', (error as any)?.message ?? error);
   }
 }
 

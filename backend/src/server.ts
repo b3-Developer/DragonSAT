@@ -32,10 +32,6 @@ async function startServer() {
     console.log('Initializing database...');
     const db = await initializeDatabase();
 
-    // Load OpenSAT data
-    console.log('Loading OpenSAT data...');
-    await loadOpenSATData();
-
     // Routes
     app.use('/api', questionsRouter);
     app.use('/api/auth', createAuthRouter(db));
@@ -69,6 +65,9 @@ async function startServer() {
     app.listen(PORT, () => {
       console.log(`DragonSAT backend listening on port ${PORT}`);
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      // Load question data after server is up — failure is non-fatal
+      console.log('Loading OpenSAT data...');
+      loadOpenSATData().catch(() => {});
     });
   } catch (error) {
     console.error('Failed to start server:', error);
