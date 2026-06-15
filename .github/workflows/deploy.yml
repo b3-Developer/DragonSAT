@@ -1,0 +1,27 @@
+name: Deploy to Portainer
+
+on:
+  workflow_run:
+    workflows: ["Build & Push to DockerHub"]
+    types:
+      - completed
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Deploy via Portainer webhook
+        run: |
+          HTTP_STATUS=$(curl -s -o /tmp/portainer_response.txt -w "%{http_code}" -X POST "${{ secrets.PORTAINER_WEBHOOK_URL }}" \
+            -H "CF-Access-Client-Id: ${{ secrets.CF_ACCESS_CLIENT_ID }}" \
+            -H "CF-Access-Client-Secret: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}")
+          echo "Portainer responded: $HTTP_STATUS"
+          if [[ "$HTTP_STATUS" -lt 200 || "$HTTP_STATUS" -gt 299 ]]; then
+            echo "Deploy failed — response body:"
+            cat /tmp/portainer_response.txt
+            exit 1
+          fi
+          echo "Deploy triggered successfully"
