@@ -10,7 +10,7 @@ services:
       NODE_ENV: production
       PORT: 3001
       DATABASE_PATH: /app/data/dragonsat.db
-      OPENSAT_API_URL: "${OPENSAT_API_URL:-https://pinesat.com/api/questions}"
+      OPENSAT_API_URL: "${OPENSAT_API_URL:-https://pinesat.duckdns.org/api/questions}"
       BACKEND_URL: http://localhost:3001/api
       FRONTEND_URL: "${FRONTEND_URL:-http://localhost:3000}"
       JWT_SECRET: "${JWT_SECRET:-change-me-in-production}"

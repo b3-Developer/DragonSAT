@@ -5,7 +5,7 @@ let cachedQuestions: FilteredQuestion[] = [];
 let isCached = false;
 
 const OPENSAT_URL = process.env.OPENSAT_API_URL ||
-  'https://pinesat.com/api/questions';
+  'https://pinesat.duckdns.org/api/questions';
 
 /** Handle both bare-array and wrapped-object response shapes from the API */
 function extractArray(data: any, section: string): OpenSATQuestion[] {
