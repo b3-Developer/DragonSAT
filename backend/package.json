@@ -5,7 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "ts-node src/server.ts",
-    "build": "tsc && cp src/db/schema.sql dist/db/schema.sql",
+    "build": "tsc && cp src/db/schema.sql dist/db/schema.sql && cp -r src/data dist/data",
     "start": "node dist/server.js",
     "type-check": "tsc --noEmit"
   },

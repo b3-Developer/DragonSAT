@@ -40,6 +40,8 @@ yarn-error.log*
 *.db
 *.db-journal
 data/
+# But do track bundled question data
+!backend/src/data/
 
 # OS
 .DS_Store

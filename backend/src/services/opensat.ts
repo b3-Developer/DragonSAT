@@ -1,4 +1,6 @@
 import axios from 'axios';
+import * as fs from 'fs';
+import * as path from 'path';
 import { OpenSATQuestion, FilteredQuestion, QuestionFilterParams } from '../types';
 
 let cachedQuestions: FilteredQuestion[] = [];
@@ -6,6 +8,8 @@ let isCached = false;
 
 const OPENSAT_URL = process.env.OPENSAT_API_URL ||
   'https://pinesat.duckdns.org/api/questions';
+
+const BUNDLED_DATA_DIR = path.join(__dirname, '..', 'data');
 
 /** Handle both bare-array and wrapped-object response shapes from the API */
 function extractArray(data: any, section: string): OpenSATQuestion[] {
@@ -20,14 +24,39 @@ function extractArray(data: any, section: string): OpenSATQuestion[] {
   return [];
 }
 
+function loadBundledData(): { math: OpenSATQuestion[]; english: OpenSATQuestion[] } | null {
+  try {
+    const mathPath = path.join(BUNDLED_DATA_DIR, 'questions-math.json');
+    const englishPath = path.join(BUNDLED_DATA_DIR, 'questions-english.json');
+    if (!fs.existsSync(mathPath) || !fs.existsSync(englishPath)) return null;
+    const math = JSON.parse(fs.readFileSync(mathPath, 'utf-8'));
+    const english = JSON.parse(fs.readFileSync(englishPath, 'utf-8'));
+    return { math: extractArray(math, 'math'), english: extractArray(english, 'english') };
+  } catch {
+    return null;
+  }
+}
+
 export async function loadOpenSATData(): Promise<void> {
   if (isCached && cachedQuestions.length > 0) {
     console.log(`Using cached OpenSAT data (${cachedQuestions.length} questions)`);
     return;
   }
 
+  // Try bundled data files first (zero network dependency)
+  const bundled = loadBundledData();
+  if (bundled) {
+    const mathQs: FilteredQuestion[] = bundled.math.map((q: OpenSATQuestion) => ({ ...q, section: 'math' }));
+    const englishQs: FilteredQuestion[] = bundled.english.map((q: OpenSATQuestion) => ({ ...q, section: 'english' }));
+    cachedQuestions = [...mathQs, ...englishQs];
+    isCached = true;
+    console.log(`Loaded ${mathQs.length} math + ${englishQs.length} english questions from bundled data (${cachedQuestions.length} total)`);
+    return;
+  }
+
+  // Fall back to live API
   try {
-    console.log('Fetching OpenSAT data from pinesat.com...');
+    console.log('Fetching OpenSAT data from live API...');
     const [mathRes, englishRes] = await Promise.all([
       axios.get(`${OPENSAT_URL}?section=math`),
       axios.get(`${OPENSAT_URL}?section=english`),
@@ -41,7 +70,7 @@ export async function loadOpenSATData(): Promise<void> {
     cachedQuestions = [...mathQs, ...englishQs];
 
     isCached = true;
-    console.log(`Loaded ${mathQs.length} math + ${englishQs.length} english questions (${cachedQuestions.length} total)`);
+    console.log(`Loaded ${mathQs.length} math + ${englishQs.length} english questions from live API (${cachedQuestions.length} total)`);
   } catch (error) {
     console.error('Failed to load OpenSAT data (questions unavailable until retry):', (error as any)?.message ?? error);
   }
