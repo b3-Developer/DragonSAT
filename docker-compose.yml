@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   app:
-    image: technicallybob/dragonsat:latest
+    image: ghcr.io/b3-developer/dragonsat:latest
     container_name: dragonsat
     ports:
       - '3000:3000'
